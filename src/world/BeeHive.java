@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * uses the resources in order to support reproduction.
  *
  * @author Sean Strout @ RIT CS
- * @author YOUR NAME HERE
+ * @author Samuel Henderson
  */
 public class BeeHive {
     /** the field of flowers */
@@ -166,7 +166,7 @@ public class BeeHive {
      */
     public void begin() {
         System.out.println("*BH* Bee hive begins buzzing!");
-        // TODO
+        this.bees.forEach(Thread::start);
     }
 
     /**
@@ -191,7 +191,13 @@ public class BeeHive {
         // flip the switch
         this.active = false;
 
-        // TODO
+        this.bees.forEach(bee -> {
+            try {
+                bee.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
 
         System.out.println("*BH* Bee hive stops buzzing!");
     }
@@ -253,6 +259,12 @@ public class BeeHive {
      */
     public synchronized void deposit(Resource resource, Worker bee) {
         System.out.println("*BH* " + bee + " deposits");
-        // TODO
+        if(resource == Resource.NECTAR) {
+            ++ this.nectarGathered;
+            ++ this.nectar;
+        } else if(resource == Resource.POLLEN) {
+            ++ this.pollenGathered;
+            ++ this.pollen;
+        }
     }
 }
