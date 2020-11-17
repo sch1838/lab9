@@ -1,11 +1,8 @@
 package world;
 
-import bee.Bee;
 import bee.Drone;
-import bee.Queen;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * The queen's chamber is where the mating ritual between the queen and her
@@ -19,20 +16,34 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author Samuel Henderson
  */
 public class QueensChamber {
+    /** The queue of drones waiting to mate with the queen. **/
     private final ConcurrentLinkedDeque<Drone> drones = new ConcurrentLinkedDeque<>();
 
-    private boolean queenMating = false;
+    /** Status of the queen - is the queen ready to mate - only true once the queen has called {@link #summonDrone()}. **/
+    private boolean queenReady = false;
 
+    /**
+     * Facilitates the dismissal of any waiting drones. Resets the queen ready status as well.
+     */
     public synchronized void dismissDrone() {
-
+        this.queenReady = false;
+        notifyAll();
     }
 
+    /**
+     * Facilitates the entry of a Drone into the Queen's chamber.
+     *
+     * <p>Upon entry to the chamber, drones will wait until they are first in the queue and the queen is ready to mate.
+     * After a drone is released from waiting and allowed to mate, the queen status is updated to not ready and the
+     * first drone used in mating is removed from the chamber queue.</p>
+     */
     public synchronized void enterChamber(Drone drone) {
+
         // Add the provided drone to the chamber
         System.out.println("*QC* " + drone + " enters chamber");
         this.drones.add(drone);
 
-        if(!this.drones.getFirst().equals(drone) || this.queenMating) {
+        while(!this.drones.getFirst().equals(drone) || !this.queenReady) {
             // Wait if the queen is already mating with another drone
             try {
                 wait();
@@ -41,7 +52,10 @@ public class QueensChamber {
             }
         }
 
+        this.queenReady = false;
+
         System.out.println("*QC* " + drone + " leaves chamber");
+        this.drones.remove(drone);
     }
 
     /**
@@ -52,20 +66,27 @@ public class QueensChamber {
         return !this.drones.isEmpty();
     }
 
+    /**
+     * Summon a drone to mate with the queen.
+     *
+     * <p>QueensChamber status is first updated to reflect that the queen is ready - this allows the first drone in the
+     * queue to continue through {@link #enterChamber(Drone)}. The first drone is retrieved from the queue and its
+     * status is updated. All waiting drones are notified subsequently.</p>
+     */
     public synchronized void summonDrone() {
-        // Update status so other drones know
-        this.queenMating = true;
 
-        // Get the first drone in the queue
+        // Update status so other drones know
+        this.queenReady = true;
+
+        // Get the first drone in the queue and mate
         Drone first = this.drones.getFirst();
-        this.drones.remove(first);
+
+        first.mate();
 
         // Cause drone to mate with queen, update drone accordingly
         System.out.println("*QC* Queen mates with " + first);
-        first.mate();
 
-        // Update status and notify waiting drones
-        this.queenMating = false;
+        // Notify waiting drones
         notifyAll();
     }
 }
