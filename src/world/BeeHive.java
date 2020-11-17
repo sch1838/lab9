@@ -2,6 +2,7 @@ package world;
 
 import bee.Bee;
 import bee.Bee.Role;
+import bee.Queen;
 import bee.Worker;
 import bee.Worker.Resource;
 
@@ -56,6 +57,14 @@ public class BeeHive {
         this.perishedBees = new ConcurrentLinkedQueue<>();
         this.nectar = this.pollen = 0;
 
+        // Create one queen
+        this.bees.add(Bee.createBee(Role.QUEEN, Resource.NONE, this));
+
+        // Create numDrones drones
+        for (int i = 0; i < numDrones; ++ i) {
+            this.bees.add(Bee.createBee(Role.DRONE, Resource.NONE, this));
+        }
+
         // create the bees!
         for (int i=0; i<numNectarWorkers; ++i ) {
             this.bees.add(Bee.createBee(Role.WORKER, Resource.NECTAR, this));
@@ -63,8 +72,6 @@ public class BeeHive {
         for (int i=0; i<numPollenWorkers; ++i ) {
             this.bees.add(Bee.createBee(Role.WORKER, Resource.POLLEN, this));
         }
-
-        // TODO create queen and drone bees
 
         this.active = true;
         this.numBorn = this.bees.size();
@@ -210,7 +217,9 @@ public class BeeHive {
      * @param bee the bee who perished
      */
     public synchronized void beePerished (Bee bee){
-        // TODO
+        // Swap lists
+        this.bees.remove(bee);
+        this.perishedBees.add(bee);
     }
 
     /**
@@ -220,7 +229,10 @@ public class BeeHive {
      * @param bee the new bee
      */
     public synchronized void addBee(Bee bee) {
-        // TODO
+        // Add and start
+        this.bees.add(bee);
+        ++ this.numBorn;
+        bee.start();
     }
 
     /**
@@ -230,8 +242,7 @@ public class BeeHive {
      * @return do we have enough resources?
      */
     public synchronized boolean hasResources() {
-        // TODO
-        return false;
+        return 0 < this.nectar && 0 < this.pollen;
     }
 
     /**
@@ -241,7 +252,8 @@ public class BeeHive {
      * @rit.pre {@link BeeHive#hasResources()} is true
      */
     public synchronized void claimResources() {
-        // TODO
+        -- this.nectar;
+        -- this.pollen;
     }
 
     /**
