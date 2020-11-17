@@ -9,9 +9,11 @@ import world.BeeHive;
  * endophallus gets ripped off and he perishes soon after mating.
  *
  * @author Sean Strout @ RIT CS
- * @author YOUR NAME HERE
+ * @author Samuel Henderson
  */
 public class Drone extends Bee {
+
+    private boolean hasMated = false;
 
     /**
      * When the drone is created they should retrieve the queen's
@@ -39,6 +41,23 @@ public class Drone extends Bee {
      * sleeping.
      */
     public void run() {
-        // TODO
+        if(this.beeHive.isActive()) {
+            this.beeHive.getQueensChamber().enterChamber(this);
+
+            if(this.hasMated) {
+                // Attempt to sleep and perish after mating
+                try {
+                    sleep(Queen.MATE_TIME_MS);
+                    this.beeHive.beePerished(this);
+                    System.out.println("*D* " + this + " has perished!");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void mate() {
+        this.hasMated = true;
     }
 }
