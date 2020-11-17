@@ -71,33 +71,39 @@ public class Queen extends Bee {
 
         while(this.beeHive.isActive()) {
             try {
-                if (this.beeHive.hasResources() && chamber.hasDrone()) {
-
-                    // Claim necessary resources
-                    this.beeHive.claimResources();
+                if (chamber.hasDrone()) {
 
                     // Summon mate drone to queen
                     chamber.summonDrone();
+
+                    sleep(SLEEP_TIME_MS);
 
                     // Acquire spawn count
                     int count = RandomBee.nextInt(MIN_NEW_BEES, MAX_NEW_BEES);
 
                     for(int i = 0; i < count; ++ i) {
-                        // 1-20: Nectar // 21-40: Pollen // 41-100: Drone
-                        int type = RandomBee.nextInt(1, 100);
-                        Bee spawn;
+                        if(this.beeHive.hasResources()) {
+                            // Claim resources for each attempted new bee
+                            this.beeHive.claimResources();
 
-                        // Initialize
-                        if (type <= 20) {
-                            spawn = Bee.createBee(Role.WORKER, Worker.Resource.NECTAR, this.beeHive);
-                        } else if (type <= 40) {
-                            spawn = Bee.createBee(Role.WORKER, Worker.Resource.POLLEN, this.beeHive);
+                            // 1-20: Nectar // 21-40: Pollen // 41-100: Drone
+                            int type = RandomBee.nextInt(1, 100);
+                            Bee spawn;
+
+                            // Initialize
+                            if (type <= 20) {
+                                spawn = Bee.createBee(Role.WORKER, Worker.Resource.NECTAR, this.beeHive);
+                            } else if (type <= 40) {
+                                spawn = Bee.createBee(Role.WORKER, Worker.Resource.POLLEN, this.beeHive);
+                            } else {
+                                spawn = Bee.createBee(Role.DRONE, Worker.Resource.NONE, this.beeHive);
+                            }
+
+                            // Add
+                            this.beeHive.addBee(spawn);
                         } else {
-                            spawn = Bee.createBee(Role.DRONE, Worker.Resource.NONE, this.beeHive);
+                            break;
                         }
-
-                        // Add
-                        this.beeHive.addBee(spawn);
                     }
 
                     System.out.println("*Q* Queen birthed " + count + " children");
@@ -111,6 +117,7 @@ public class Queen extends Bee {
             }
         }
 
+        // Dismiss additional waiting drones when simulation is complete
         chamber.dismissDrone();
     }
 }
