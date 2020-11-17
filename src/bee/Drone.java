@@ -13,6 +13,7 @@ import world.BeeHive;
  */
 public class Drone extends Bee {
 
+    /** Represents the status of a Drone - has it mated yet. **/
     private boolean hasMated = false;
 
     /**
@@ -57,6 +58,9 @@ public class Drone extends Bee {
         }
     }
 
+    /**
+     * Updates the status of the Drone to represent that it has mated with the Queen.
+     */
     public void mate() {
         this.hasMated = true;
     }
